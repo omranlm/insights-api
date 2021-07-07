@@ -8,11 +8,11 @@ const config = {
     name: 'psql',
     connector: 'postgresql',
     url: '',
-    host: 'localhost',
-    port: 5432,
-    user: 'postgres',
-    password: '112112',
-    database: 'osmstats'
+    host: process.env.HOST ? process.env.HOST : 'localhost',
+    port: process.env.PORT ? process.env.PORT : 5432,
+    user: process.env.USER ? process.env.USER : 'postgres',
+    password: process.env.PASSWORD ? process.env.PASSWORD : '112112',
+    database: process.env.DB_NAME ? process.env.DB_NAME : 'osmstats'
 };
 // Observe application's life cycle to disconnect the datasource when
 // application is stopped. This allows the application to be shut down

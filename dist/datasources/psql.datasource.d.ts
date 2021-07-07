@@ -7,7 +7,7 @@ export declare class PsqlDataSource extends juggler.DataSource implements LifeCy
         connector: string;
         url: string;
         host: string;
-        port: number;
+        port: string | number;
         user: string;
         password: string;
         database: string;
