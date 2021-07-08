@@ -5,10 +5,10 @@ const config = {
   name: 'psql',
   connector: 'postgresql',
   url: '',
-  host: process.env.HOST ? process.env.HOST : 'localhost',
-  port: process.env.PORT ? process.env.PORT : 5432,
-  user: process.env.USER ? process.env.USER : 'postgres',
-  password: process.env.PASSWORD ? process.env.PASSWORD : '112112',
+  host: process.env.DB_HOST ? process.env.DB_HOST : 'localhost',
+  port: process.env.DB_PORT ? process.env.DB_PORT : 5432,
+  user: process.env.DB_USER ? process.env.DB_USER : 'postgres',
+  password: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : '112112',
   database: process.env.DB_NAME ? process.env.DB_NAME : 'osmstats'
 };
 
