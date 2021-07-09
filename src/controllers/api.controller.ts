@@ -48,7 +48,7 @@ export class ApiController {
   ) {
 
     try {
-      return await this.queryRepository.execute(`select  max(c.id), max(c.created_at)
+      return await this.queryRepository.execute(`select  max(c.id) max_changeset_id ,max(c.created_at) max_changeset_date
       from public.osm_changeset c;
       `);
     } catch (error) {
