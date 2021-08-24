@@ -140,6 +140,22 @@ export class ApiController {
 
     }
   }
+  @get('/ap_mach_cities_count')
+  @response(200, {
+    description: 'Returns the cities count for AP Chat and MAP hout',
+    content: { 'application/json': { schema: {} } },
+  })
+  async apCitiesCount(
+  ) {
+
+    try {
+      return await this.queryRepository.execute(`select *
+      from public.ap_mach_cities_count`);
+    } catch (error) {
+
+      throw new Error(error);
+    }
+  }
 
   @get('/key-stats/{region}/{country}/{key}')
   @response(200, {
