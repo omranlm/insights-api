@@ -67,9 +67,9 @@ export class ApiController {
   ) {
 
     try {
-      return await this.queryRepository.execute(`select distinct country
-      from africa.keys_stats
-      where country is not null
+      return await this.queryRepository.execute(`
+      select name_en, boundary
+      from public.boundaries
       `);
     } catch (error) {
 
