@@ -60,7 +60,7 @@ export class ApiController {
   }
   @get('/countries')
   @response(200, {
-    description: 'Query Status',
+    description: 'Query list of countries in insights ',
     content: { 'application/json': { schema: {} } },
   })
   async countries(
