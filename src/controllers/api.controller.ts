@@ -127,7 +127,24 @@ export class ApiController {
       console.log('Final query', sql)
       const mappedFeatures = await this.queryRepository.execute(sql);
 
+      const sqlContributers = `
+      select count(distinct uid) Total_contributers
+      from (select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
+            from public.osm_element_history osh
+            where osh.changeset in (select c.id
+						from public.osm_changeset c
+                  where c.created_at  between '${startDate}' and '${endDate}'
+                  and (
+                    ${str}
+                  )
+                  )
+                  ) as t
+      `;
+      console.log('Final query sqlContributers', sqlContributers)
+      const contributersCount = await this.queryRepository.execute(sqlContributers);
+
       return {
+        contributersCount,
         mappedFeatures
       }
     } catch (error) {
