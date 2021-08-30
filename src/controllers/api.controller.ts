@@ -144,7 +144,7 @@ export class ApiController {
       const contributersCount = await this.queryRepository.execute(sqlContributers);
 
       return {
-        contributersCount,
+        contributersCount: +contributersCount[0]["total_contributers"],
         mappedFeatures
       }
     } catch (error) {
