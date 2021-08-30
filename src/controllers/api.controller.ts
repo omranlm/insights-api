@@ -105,7 +105,7 @@ export class ApiController {
       let str = '';
 
 
-      for (const p in query) {
+      for (const p of query) {
         str = str + `or (c.tags -> 'comment') ~~ '%${p}%' or (c.tags -> 'hashtags') ~~ '%${p}%'`;
       }
       str = str.substring(3);
