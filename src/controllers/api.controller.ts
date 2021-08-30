@@ -16,6 +16,7 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
 import { Query } from '../models';
 import { QueryRepository } from '../repositories';
@@ -48,16 +49,24 @@ export class ApiController {
   ) {
 
     try {
-      return await this.queryRepository.execute(`select  max(c.id) max_changeset_id ,max(c.created_at) max_changeset_date
+      const changeset = await this.queryRepository.execute(`select  max(c.id) max_changeset_id ,max(c.created_at) max_changeset_date
       from public.osm_changeset c;
       `);
+
+      const osmh = await this.queryRepository.execute(`select  max(h.changeset) max_changeset_id ,max(h."timestamp") max_osm_element_his_date
+      from public.osm_element_history h;
+      `);
+
+      return {
+        changeset,
+        osmh
+      }
     } catch (error) {
 
       throw new Error(error);
-
-
     }
   }
+
   @get('/countries')
   @response(200, {
     description: 'Query list of countries in insights ',
@@ -79,6 +88,54 @@ export class ApiController {
     }
   }
 
+  @get('/live_events/{startDate}/{endDate}/{projects}')
+  @response(200, {
+    description: 'Returns live events insights ',
+    content: { 'application/json': { schema: {} } },
+  })
+  async liveEvents(@param.path.string("startDate") startDate: string,
+    @param.path.string("endDate") endDate: string,
+    @param.path.string("projects") projects: string,
+  ) {
+
+    try {
+      const query = projects.split(',');
+      if (query.length === 0)
+        throw new HttpErrors.Conflict('At least 1 project is required');
+      let str = '';
+
+      if (query.length === 1)
+        str = `(c.tags -> 'comment') ~~ '%${query[0]}%' or (c.tags -> 'hashtags') ~~ '%${query[0]}%'`
+      else {
+        str = `(c.tags -> 'comment') ~~ '%${query[0]}%' or (c.tags -> 'hashtags') ~~ '%${query[0]}%'`
+        for (const p in query) {
+          str = str + `or (c.tags -> 'comment') ~~ '%${p}%' or (c.tags -> 'hashtags') ~~ '%${p}%'`;
+        }
+      }
+      const mappedFeatures = await this.queryRepository.execute(`
+      select t.key, count(distinct id)
+      from (select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
+      from public.osm_element_history osh
+      where osh.changeset in (select c.id
+                  from public.osm_changeset c
+                  where c.created_at  between '${startDate}' and '${endDate}'
+                  and (
+                    ${str}
+                  )
+                  )
+                  ) as t
+      group by t.key
+      order by 2 desc
+      `);
+
+      return {
+        mappedFeatures
+      }
+    } catch (error) {
+
+      throw new HttpErrors.Conflict(error);
+    }
+  }
   @get('/africa/{country}/{key}')
   @response(200, {
     description: 'Africa countires statistics for specific tag such as building, highway .. Only keys of the tags are considered and returned data is divided by monthly progress.',
