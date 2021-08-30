@@ -88,7 +88,7 @@ export class ApiController {
     }
   }
 
-  @get('/live_events/{startDate}/{endDate}/{projects}')
+  @get('/live_events/{startDate}/{endDate}/{projects}/{hashtags}')
   @response(200, {
     description: 'Returns live events insights ',
     content: { 'application/json': { schema: {} } },
@@ -96,6 +96,7 @@ export class ApiController {
   async liveEvents(@param.path.string("startDate") startDate: string,
     @param.path.string("endDate") endDate: string,
     @param.path.string("projects") projects: string,
+    @param.path.string("hashtags") hashtags?: string
   ) {
 
     try {
@@ -107,9 +108,21 @@ export class ApiController {
 
       for (const p of query) {
         if (p.trim() !== '')
-          str = str + `or (c.tags -> 'comment') ~~ '%${p.trim()}%' or (c.tags -> 'hashtags') ~~ '%${p.trim()}%'`;
+          str = str + `or (c.tags -> 'comment') ~~ '%hotosm-project-${p.trim()}%' or (c.tags -> 'hashtags') ~~ '%hotosm-project-${p.trim()}%'`;
       }
       str = str.substring(3);
+
+      // add hashtags
+      let str2 = '';
+      if (hashtags && hashtags !== '') {
+        const hash = hashtags.split(',');
+
+        for (const p of hash) {
+          if (p.trim() !== '')
+            str2 = str2 + `or (c.tags -> 'comment') ~~ '%${p.trim()}%' or (c.tags -> 'hashtags') ~~ '%${p.trim()}%'`;
+        }
+      }
+
       const sql = `
       select t.key, count(distinct id)
       from (select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
@@ -119,6 +132,7 @@ export class ApiController {
                   where c.created_at  between '${startDate}' and '${endDate}'
                   and (
                     ${str}
+                    ${str2}
                   )
                   )
                   ) as t
@@ -137,6 +151,7 @@ export class ApiController {
                   where c.created_at  between '${startDate.trim()}' and '${endDate.trim()}'
                   and (
                     ${str}
+                    ${str2}
                   )
                   )
                   ) as t
