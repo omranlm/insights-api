@@ -106,7 +106,8 @@ export class ApiController {
 
 
       for (const p of query) {
-        str = str + `or (c.tags -> 'comment') ~~ '%${p}%' or (c.tags -> 'hashtags') ~~ '%${p}%'`;
+        if (p.trim() !== '')
+          str = str + `or (c.tags -> 'comment') ~~ '%${p.trim()}%' or (c.tags -> 'hashtags') ~~ '%${p.trim()}%'`;
       }
       str = str.substring(3);
       const sql = `
@@ -133,7 +134,7 @@ export class ApiController {
             from public.osm_element_history osh
             where osh.changeset in (select c.id
 						from public.osm_changeset c
-                  where c.created_at  between '${startDate}' and '${endDate}'
+                  where c.created_at  between '${startDate.trim()}' and '${endDate.trim()}'
                   and (
                     ${str}
                   )
