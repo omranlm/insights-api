@@ -104,15 +104,12 @@ export class ApiController {
         throw new HttpErrors.Conflict('At least 1 project is required');
       let str = '';
 
-      if (query.length === 1)
-        str = `(c.tags -> 'comment') ~~ '%${query[0]}%' or (c.tags -> 'hashtags') ~~ '%${query[0]}%'`
-      else {
-        str = `(c.tags -> 'comment') ~~ '%${query[0]}%' or (c.tags -> 'hashtags') ~~ '%${query[0]}%'`
-        for (const p in query) {
-          str = str + `or (c.tags -> 'comment') ~~ '%${p}%' or (c.tags -> 'hashtags') ~~ '%${p}%'`;
-        }
+
+      for (const p in query) {
+        str = str + `or (c.tags -> 'comment') ~~ '%${p}%' or (c.tags -> 'hashtags') ~~ '%${p}%'`;
       }
-      const mappedFeatures = await this.queryRepository.execute(`
+      str = str.substring(3);
+      const sql = `
       select t.key, count(distinct id)
       from (select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
       from public.osm_element_history osh
@@ -126,7 +123,9 @@ export class ApiController {
                   ) as t
       group by t.key
       order by 2 desc
-      `);
+      `;
+      console.log('Final query', sql)
+      const mappedFeatures = await this.queryRepository.execute(sql);
 
       return {
         mappedFeatures
