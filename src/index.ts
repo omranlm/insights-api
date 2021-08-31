@@ -3,7 +3,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {ApplicationConfig, TodoListApplication} from './application';
+import { ApplicationConfig, TodoListApplication } from './application';
 
 // re-exports for our benchmark, not needed for the tutorial itself
 export * from '@loopback/rest';
@@ -25,7 +25,7 @@ if (require.main === module) {
   // Run the application
   const config = {
     rest: {
-      port: +(process.env.PORT ?? 3000),
+      port: +(process.env.PORT ?? 443),
       host: process.env.HOST,
       // The `gracePeriodForClose` provides a graceful close for http/https
       // servers with keep-alive clients. The default value is `Infinity`
