@@ -124,7 +124,7 @@ export class ApiController {
       }
 
       const sql = `
-      select t.key, count(distinct id)
+      select t.key,t.action, count(distinct id)
       from (select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
       from public.osm_element_history osh
       where osh.changeset in (select c.id
@@ -136,8 +136,8 @@ export class ApiController {
                   )
                   )
                   ) as t
-      group by t.key
-      order by 2 desc
+        group by t.key,t.action
+        order by 3 desc
       `;
       console.log('Final query', sql)
       const mappedFeatures = await this.queryRepository.execute(sql);
@@ -159,35 +159,10 @@ export class ApiController {
       console.log('Final query sqlContributers', sqlContributers)
       const contributersCount = await this.queryRepository.execute(sqlContributers);
 
-      const sqlBuildingsValidated = `
-     select count(distinct buildings.id) buildings_validated
-	from (select (select st_setsrid(('POINT('|| n.lon ||' ' || n.lat || ')')::geometry,4326)
-						from public.osm_element_history n
-						where n."type" = 'node'
-				        and n.id = t.nds[1]
-				        limit 1) loc,*
-	from (
-			select (each(osh.tags)).key, (each(osh.tags)).value,osh.*
-			from public.osm_element_history osh
-			where osh.changeset in (select c.id
-				from public.osm_changeset c
-        where c.created_at  between '${startDate.trim()}' and '${endDate.trim()}'
-				and (
-          ${str}
-          ${str2}
-				)
-				)
-			) as t
-		where t.key = 'building') as buildings
-		join public.tm_tasks('11224,10042,9906,1381,11203,10681,8055,8732,11193,7305,11210,10985,10988,11190,6658,5644,10913,6495,4229') tasks
-		on ST_INTERSECTS(buildings.loc, tasks.geo)
-		where tasks.task_status = 4
-      `;
-      console.log('Final query sqlContributers', sqlBuildingsValidated)
-      const buildingsValidated = await this.queryRepository.execute(sqlBuildingsValidated);
+
       return {
         contributersCount: +contributersCount[0]["total_contributers"],
-        buildingsValidated: +buildingsValidated[0]["buildings_validated"],
+
         mappedFeatures
       }
     } catch (error) {
