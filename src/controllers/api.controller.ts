@@ -67,7 +67,7 @@ export class ApiController {
     }
   }
 
-  @get('/countries')
+  @get('/loaded_countries')
   @response(200, {
     description: 'Query list of countries in insights ',
     content: { 'application/json': { schema: {} } },
@@ -77,8 +77,7 @@ export class ApiController {
 
     try {
       return await this.queryRepository.execute(`
-      select name_en, boundary
-      from public.boundaries
+      select b.name_en, priority from public.boundaries b where b.loaded;
       `);
     } catch (error) {
 
