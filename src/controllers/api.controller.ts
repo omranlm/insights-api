@@ -309,4 +309,52 @@ export class ApiController {
 
     }
   }
+  @get('/buildings/{country}')
+  @response(200, {
+    description: 'region needs to be one of the following, asia, africa, central_america or south_america case sensitive',
+    content: { 'application/json': { schema: {} } },
+  })
+  async buildingStats(
+    @param.path.string("country") country: string
+
+  ) {
+    try {
+      return await this.queryRepository.execute(`with all_hot as (with acc_hot as (select   t.by_month, sum(total_count) total
+                          from (select s.changeset osm_changeset ,by_month , building_count total_count
+                              from public.building_by_month s
+                              where country = '${country}') t
+                          where t.osm_changeset in (select  id
+                                        from public.hot_changeset )
+                          group by  t.by_month)
+                    select by_month,
+                        total,
+                        (select sum(total) from acc_hot inner_hot where  inner_hot.by_month <= acc.by_month) as accmulative_total
+                    from acc_hot acc),
+                    all_osm as ( with acc_osm as (select  t.by_month, sum(building_count) total
+                                    from (select s.changeset ,by_month  , building_count
+                                      from public.building_by_month s
+                                      where country = '${country}') t
+                                    group by  t.by_month)
+                          select 	by_month,
+                              total,
+                                  (select sum(total) from acc_osm inner_osm where  inner_osm.by_month <= accO.by_month) as accmulative_total
+                    from acc_osm accO)
+                    select
+                    ah.by_month by_month_hot,
+                    ao.by_month by_month_osm,
+                    (case when ah.total is null then 0 else ah.total end) hot_mapped,
+                    ah.accmulative_total  accmulative_total_hot,
+                    ao.total all_osm_mapped,
+                    ao.accmulative_total accmulative_total_osm
+                    from all_hot ah full outer join all_osm ao
+                    on ao.by_month = ah.by_month
+                    order by 2
+      `);
+    } catch (error) {
+
+      throw new Error(error);
+
+
+    }
+  }
 }
