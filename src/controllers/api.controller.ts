@@ -322,9 +322,10 @@ export class ApiController {
 
   ) {
     try {
-      return await this.queryRepository.execute(`select country ,by_month , building_count
+      return await this.queryRepository.execute(`select *
       from public.country_insights ci
       where ci.country = '${country}'
+      and by_month < now()
       order by 2
       `);
     } catch (error) {
