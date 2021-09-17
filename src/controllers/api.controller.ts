@@ -312,7 +312,7 @@ export class ApiController {
 
     }
   }
-  @get('/buildings/{country}')
+  @get('/country-insights/{country}')
   @response(200, {
     description: 'region needs to be one of the following, asia, africa, central_america or south_america case sensitive',
     content: { 'application/json': { schema: {} } },
@@ -322,12 +322,25 @@ export class ApiController {
 
   ) {
     try {
-      return await this.queryRepository.execute(`select *
+
+
+      const countryBuildingsByMonth = await this.queryRepository.execute(`
+      select *
       from public.country_insights ci
       where ci.country = '${country}'
       and by_month < now()
       order by 2
       `);
+      const countryValidatedBuildings = await this.queryRepository.execute(`
+      select *
+        from public.country_insights2
+        where country = '${country}'
+      `);
+
+      return {
+        countryBuildingsByMonth,
+        countryValidatedBuildings: countryValidatedBuildings
+      }
     } catch (error) {
 
       throw new Error(error);
